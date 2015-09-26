@@ -9,7 +9,7 @@ class Regressor(BaseEstimator):
         #self.clf = GradientBoostingRegressor(n_estimators=100, max_features="sqrt", max_depth=6)
         self.clf = make_pipeline(
                 StandardScaler(),
-                SparsePCA(),
+                KernelPCA(),
                 GradientBoostingRegressor(n_estimators=200, max_features="sqrt", max_depth=5)
         )
 

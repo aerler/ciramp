@@ -91,4 +91,6 @@ class FeatureExtractor(object):
     def make_ll_feature(self, tas, latitude, longitude, lag):
         enso = tas.loc[:, latitude:latitude+10, longitude:longitude+10].mean(dim=('lat','lon'))
         lagged = np.roll(enso, self.n_lookahead - lag)
+        if lag != 0:
+            lagged = enso - lagged
         return self.make_feature(enso) 

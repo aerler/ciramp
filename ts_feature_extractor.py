@@ -25,7 +25,7 @@ class FeatureExtractor(object):
                     features.append(self.make_ll_feature(temperatures_xray['tas'], latitude, longitude, lag))
         X = np.vstack(features)
         # all world temps
-        all_temps = temperatures_xray['tas'].values
+        all_temps = temperatures_xray['tas'].loc[:, -60:60, 180:300].values
         time_steps, lats, lons = all_temps.shape
         all_temps = all_temps.reshape((time_steps, lats * lons))
         all_temps = all_temps[n_burn_in:-n_lookahead, :]

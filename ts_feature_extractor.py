@@ -13,7 +13,7 @@ def get_calif_mean(tas):
     """The array of mean temperatures in the El Nino 3.4 region at all time points."""
     return tas.loc[:, 32:36, 360-117:360-113].mean(dim=('lat','lon'))
  
-def make_feature(enso):
+def calc_feature(enso):
     enso_matrix = enso.values.reshape((-1,12))
     count_matrix = np.ones(enso_matrix.shape)
     enso_monthly_mean = (enso_matrix.cumsum(axis=0) / count_matrix.cumsum(axis=0)).ravel()

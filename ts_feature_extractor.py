@@ -21,7 +21,7 @@ class FeatureExtractor(object):
         features = []
         for latitude in xrange(-25, 25, 10):
             for longitude in xrange(180, 300, 5):
-                for lag in [6, 18, 24]:
+                for lag in [0, 1, 2, 3, 4, 5, 6, 18, 24]:
                     features.append(self.make_ll_feature(temperatures_xray['tas'], latitude, longitude, lag))
         X = np.vstack(features)
         return X.T

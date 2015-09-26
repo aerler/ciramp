@@ -46,7 +46,7 @@ class FeatureExtractor(object):
         features = []
         for latitude in xrange(-5, 5, 10):
             for longitude in xrange(180, 300, 5):
-                for lag in [0, 1, 2, 3, 4, 5, 6, 18, 30, 42, 54, 66, 78]:
+                for lag in xrange(0, 120): #[0, 1, 2, 3, 4, 5, 6, 18, 30, 42, 54, 66, 78]:
                     features.append(self.make_ll_feature(temperatures_xray['tas'], latitude, longitude, lag))
         X = np.vstack(features)
         # all world temps

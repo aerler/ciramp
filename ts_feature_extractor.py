@@ -1,27 +1,11 @@
-import numpy as np
-
-en_lat_bottom = -5
-en_lat_top = 5
-en_lon_left = 360-170
-en_lon_right = 360-120
-
-class FeatureExtractor(object):
-    
-    def __init__(self):
-        pass
-
-    def transform(self, temperatures_xray, n_burn_in, n_lookahead, skf_is):
-        self.n_lookahead = n_lookahead
-        """Combine two variables: the montly means corresponding to the month of the target and 
-        the current mean temperature in the El Nino 3.4 region."""
-        # This is the range for which features should be provided. Strip
         # the burn-in from the beginning and the prediction look-ahead from
         # the end.
         self.valid_range = range(n_burn_in, temperatures_xray['time'].shape[0] - n_lookahead)
         features = []
-        for longitude in xrange(180, 300, 5):
-            for lag in xrange(0, 6):
-                features.append(self.make_eq_feature(temperatures_xray['tas'], longitude, lag))
+        for latitude in xrange(-60, 60, 5):
+            for longitude in xrange(180, 300, 5):
+                for lag in xrange(0, 6):
+                    features.append(self.make_ll_feature(temperatures_xray['tas'], latitude, longitude, lag))
         X = np.vstack(features)
         return X.T
     
@@ -44,5 +28,10 @@ class FeatureExtractor(object):
 
     def make_eq_feature(self, tas, longitude, lag):
         enso = self.get_equatorial_mean(tas, longitude)
+        lagged = np.roll(enso, self.n_lookahead - lag)
+        return self.make_feature(enso) 
+
+    def make_ll_feature(self, tas, latitude, longitude, lag):
+        enso = tas.loc[:, latitude:latitude+10, longitude:longitude+10].mean(dim=('lat','lon'))
         lagged = np.roll(enso, self.n_lookahead - lag)
         return self.make_feature(enso) 

@@ -19,12 +19,17 @@ class FeatureExtractor(object):
         # the end.
         self.valid_range = range(n_burn_in, temperatures_xray['time'].shape[0] - n_lookahead)
         features = []
-        for latitude in xrange(-25, 25, 10):
+        for latitude in xrange(-5, 5, 10):
             for longitude in xrange(180, 300, 5):
                 for lag in [0, 1, 2, 3, 4, 5, 6, 18, 24]:
                     features.append(self.make_ll_feature(temperatures_xray['tas'], latitude, longitude, lag))
         X = np.vstack(features)
-        return X.T
+        # all world temps
+        all_temps = temperatures_xray['tas'].values
+        time_steps, lats, lons = all_temps.shape
+        all_temps = all_temps.reshape((time_steps, lats * lons))
+        all_temps = all_temps[n_burn_in:-n_lookahead, :]        
+        return np.hstack([X.T, all_temps])
     
     def get_enso_mean(self, tas):
         """The array of mean temperatures in the El Nino 3.4 region at all time points."""

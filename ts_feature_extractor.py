@@ -21,15 +21,21 @@ class FeatureExtractor(object):
         features = []
         for latitude in xrange(-5, 5, 10):
             for longitude in xrange(180, 300, 5):
-                for lag in [0, 1, 2, 3, 4, 5, 6, 18, 24]:
+                for lag in [0, 1, 2, 3, 4, 5, 6, 18, 30, 42, 54, 66, 78]:
                     features.append(self.make_ll_feature(temperatures_xray['tas'], latitude, longitude, lag))
         X = np.vstack(features)
         # all world temps
         all_temps = temperatures_xray['tas'].values
         time_steps, lats, lons = all_temps.shape
         all_temps = all_temps.reshape((time_steps, lats * lons))
-        all_temps = all_temps[n_burn_in:-n_lookahead, :]        
-        return np.hstack([X.T, all_temps])
+        all_temps = all_temps[n_burn_in:-n_lookahead, :]
+        # differences
+        all_diffs = np.zeros_like(all_temps)
+        all_diffs[1:-1,:] = all_temps[:-2,:] - all_temps[2:,:]
+        all_diffs[1,:] = all_temps[0,:] - all_temps[1,:]
+        all_diffs[-1,:] = all_temps[-2,:] - all_temps[-1,:]                             
+        # return feature matrix
+        return np.hstack([X.T, all_temps, all_diffs])
     
     def get_enso_mean(self, tas):
         """The array of mean temperatures in the El Nino 3.4 region at all time points."""

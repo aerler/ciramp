@@ -1,9 +1,34 @@
 import numpy as np
+import xray
+ 
+import urllib
+import os.path
+from sklearn.decomposition import PCA
+ 
+# download the sea mask
+if not os.path.exists('mask.nc'):
+    urllib.urlretrieve(
+        'https://drive.google.com/uc?export=download&id=0B-CxJMRyTT32el85MFRSYnU5TGM',
+        'mask.nc')
 
 en_lat_bottom = -5
 en_lat_top = 5
 en_lon_left = 360-170
 en_lon_right = 360-120
+
+def get_sea_mask(ds):
+    raw_mask = xray.open_dataset('mask.nc')
+    # extract places where the nearest latitude or longitude (before or after)
+    # is in the ocean
+    sea_mask = ((raw_mask.reindex_like(ds, method='pad').sftlf < 100)
+                & (raw_mask.reindex_like(ds, method='backfill').sftlf < 100))
+    return sea_mask
+ 
+def apply_sea_mask(feature_matrix, ds):
+    sea_mask = get_sea_mask(ds)
+    sea_columns = sea_mask.values.flatten()
+    return feature_matrix[:, sea_columns]
+ 
 
 class FeatureExtractor(object):
     
@@ -25,10 +50,14 @@ class FeatureExtractor(object):
                     features.append(self.make_ll_feature(temperatures_xray['tas'], latitude, longitude, lag))
         X = np.vstack(features)
         # all world temps
-        all_temps = temperatures_xray['tas'].loc[:, -60:60, 180:300].values
+        all_temps = temperatures_xray['tas'].values
         time_steps, lats, lons = all_temps.shape
         all_temps = all_temps.reshape((time_steps, lats * lons))
         all_temps = all_temps[n_burn_in:-n_lookahead, :]
+
+        # apply ocean mask
+        all_temps = apply_sea_mask(all_temps, temperatures_xray['tas'])    
+
         # differences
         all_diffs = np.zeros_like(all_temps)
         all_diffs[1:-1,:] = all_temps[:-2,:] - all_temps[2:,:]
